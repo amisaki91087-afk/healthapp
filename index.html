@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学校備品 貸出・返却管理システム</title>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-color: #1e293b;
+      --danger-color: #ef4444;
+      --danger-bg: #fef2f2;
+      --success-color: #10b981;
+      --border-color: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.5;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      color: var(--primary-color);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .btn-primary { background-color: var(--primary-color); color: white; }
+    .btn-danger { background-color: var(--danger-color); color: white; }
+    .btn-success { background-color: var(--success-color); color: white; }
+    .btn-secondary { background-color: #64748b; color: white; }
+
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .error-msg {
+      color: var(--danger-color);
+      font-size: 0.85rem;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 600px) {
+      .controls-grid {
+        grid-template-columns: 2fr 1fr;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+    }
+
+    .item-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item-card.overdue {
+      background-color: var(--danger-bg);
+      border-color: var(--danger-color);
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .item-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .badge-returned { background: #e2e8f0; color: #475569; }
+    .badge-borrowed { background: #dbeafe; color: #1e40af; }
+    .badge-overdue { background: #fee2e2; color: #991b1b; }
+
+    .item-details {
+      font-size: 0.9rem;
+      color: #475569;
+    }
+
+    .item-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    #loginSection {
+      text-align: center;
+      padding: 40px 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>🛠 備品貸出・返却管理</h1>
+      <div id="userSection" class="user-profile" style="display: none;">
+        <img id="userPhoto" class="user-avatar" src="" alt="User">
+        <button id="logoutBtn" class="btn-secondary">ログアウト</button>
+      </div>
+    </header>
+
+    <!-- ログイン画面 -->
+    <div id="loginSection" class="card">
+      <h2>ログインが必要です</h2>
+      <p style="margin-bottom: 20px; color: #64748b;">学校の備品管理を行うには、Googleアカウントでログインしてください。</p>
+      <button id="loginBtn" class="btn-primary">Googleでログイン</button>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div id="mainSection" style="display: none;">
+      <!-- 貸出登録フォーム -->
+      <div class="card">
+        <h2>新規貸出登録</h2>
+        <form id="borrowForm">
+          <div class="form-group">
+            <label for="itemName">備品名 *</label>
+            <input type="text" id="itemName" placeholder="例: ドライバーセット, プロジェクター">
+          </div>
+          <div class="form-group">
+            <label for="borrowerName">借りた人の名前 *</label>
+            <input type="text" id="borrowerName" placeholder="氏名">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="borrowDate">貸出日 *</label>
+              <input type="date" id="borrowDate">
+            </div>
+            <div class="form-group">
+              <label for="dueDate">返却予定日 *</label>
+              <input type="date" id="dueDate">
+            </div>
+          </div>
+          <div id="formError" class="error-msg">未入力の項目があります。すべての項目を入力してください。</div>
+          <button type="submit" class="btn-primary" style="width: 100%; margin-top: 12px;">貸出を登録する</button>
+        </form>
+      </div>
+
+      <!-- 検索・絞り込み・一覧表示 -->
+      <div class="card">
+        <h2>貸出状況一覧</h2>
+        <div class="controls-grid">
+          <input type="text" id="searchInput" placeholder="備品名や借りた人で検索...">
+          <select id="filterStatus">
+            <option value="all">すべて表示</option>
+            <option value="unreturned" selected>未返却のみ表示</option>
+            <option value="returned">返却済みのみ表示</option>
+          </select>
+        </div>
+
+        <div id="itemList">
+          <!-- 項目が動的に追加されます -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (v10 Modular) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { 
+      getAuth, 
+      GoogleAuthProvider, 
+      signInWithPopup, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      updateDoc, 
+      doc, 
+      onSnapshot, 
+      query, 
+      orderBy,
+      serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+
+    // ご提示いただいたFirebase設定
+    const firebaseConfig = {
+      apiKey: "AIzaSyDRymbyz5nZQ91e5SQGe8ccYsONjnd2f08",
+      authDomain: "healthapp-b7744.firebaseapp.com",
+      projectId: "healthapp-b7744",
+      storageBucket: "healthapp-b7744.firebasestorage.app",
+      messagingSenderId: "406030453715",
+      appId: "1:406030453715:web:73e13785b101b8634e3d26"
+    };
+
+    // Firebase 初期化
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // DOM要素
+    const loginSection = document.getElementById('loginSection');
+    const mainSection = document.getElementById('mainSection');
+    const userSection = document.getElementById('userSection');
+    const userPhoto = document.getElementById('userPhoto');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    const borrowForm = document.getElementById('borrowForm');
+    const itemNameInput = document.getElementById('itemName');
+    const borrowerNameInput = document.getElementById('borrowerName');
+    const borrowDateInput = document.getElementById('borrowDate');
+    const dueDateInput = document.getElementById('dueDate');
+    const formError = document.getElementById('formError');
+
+    const searchInput = document.getElementById('searchInput');
+    const filterStatus = document.getElementById('filterStatus');
+    const itemList = document.getElementById('itemList');
+
+    let itemsData = [];
+    let currentUser = null;
+
+    // 今日の日付を初期値にセット (YYYY-MM-DD)
+    const todayStr = new Date().toISOString().split('T')[0];
+    borrowDateInput.value = todayStr;
+
+    // --- 認証機能 ---
+    loginBtn.addEventListener('click', () => {
+      signInWithPopup(auth, provider).catch(error => {
+        alert("ログインに失敗しました: " + error.message);
+      });
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      signOut(auth);
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        loginSection.style.display = 'none';
+        mainSection.style.display = 'block';
+        userSection.style.display = 'flex';
+        userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
+        
+        // ログインユーザー名を借りた人欄に自動補完
+        borrowerNameInput.value = user.displayName || '';
+        
+        loadItems();
+      } else {
+        currentUser = null;
+        loginSection.style.display = 'block';
+        mainSection.style.display = 'none';
+        userSection.style.display = 'none';
+      }
+    });
+
+    // --- 貸出情報の追加 ---
+    borrowForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const itemName = itemNameInput.value.trim();
+      const borrowerName = borrowerNameInput.value.trim();
+      const borrowDate = borrowDateInput.value;
+      const dueDate = dueDateInput.value;
+
+      // エラーチェック（未入力チェック）
+      if (!itemName || !borrowerName || !borrowDate || !dueDate) {
+        formError.style.display = 'block';
+        return;
+      }
+      formError.style.display = 'none';
+
+      try {
+        await addDoc(collection(db, "equipment_loans"), {
+          itemName,
+          borrowerName,
+          borrowDate,
+          dueDate,
+          status: "未返却",
+          createdAt: serverTimestamp()
+        });
+
+        // フォームリセット
+        itemNameInput.value = '';
+        borrowDateInput.value = todayStr;
+        dueDateInput.value = '';
+        if (currentUser) {
+          borrowerNameInput.value = currentUser.displayName || '';
+        }
+      } catch (error) {
+        alert("登録に失敗しました: " + error.message);
+      }
+    });
+
+    // --- データのリアルタイム読み込み ---
+    function loadItems() {
+      const q = query(collection(db, "equipment_loans"), orderBy("createdAt", "desc"));
+      onSnapshot(q, (snapshot) => {
+        itemsData = [];
+        snapshot.forEach((doc) => {
+          itemsData.push({ id: doc.id, ...doc.data() });
+        });
+        renderItems();
+      });
+    }
+
+    // --- 返却ステータスの更新 ---
+    window.toggleStatus = async (id, currentStatus) => {
+      const newStatus = currentStatus === '未返却' ? '返却済み' : '未返却';
+      const itemRef = doc(db, "equipment_loans", id);
+      try {
+        await updateDoc(itemRef, { status: newStatus });
+      } catch (error) {
+        alert("更新に失敗しました: " + error.message);
+      }
+    };
+
+    // --- 検索・フィルター・描画処理 ---
+    function renderItems() {
+      const searchText = searchInput.value.toLowerCase();
+      const selectedStatus = filterStatus.value;
+      const today = new Date().toISOString().split('T')[0];
+
+      itemList.innerHTML = '';
+
+      const filteredItems = itemsData.filter(item => {
+        // 検索フィルター
+        const matchesSearch = item.itemName.toLowerCase().includes(searchText) || 
+                              item.borrowerName.toLowerCase().includes(searchText);
+        
+        // ステータスフィルター
+        let matchesStatus = true;
+        if (selectedStatus === 'unreturned') matchesStatus = item.status === '未返却';
+        if (selectedStatus === 'returned') matchesStatus = item.status === '返却済み';
+
+        return matchesSearch && matchesStatus;
+      });
+
+      if (filteredItems.length === 0) {
+        itemList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">該当するデータがありません。</p>';
+        return;
+      }
+
+      filteredItems.forEach(item => {
+        const isOverdue = item.status === '未返却' && item.dueDate < today;
+        
+        let badgeHtml = '';
+        if (item.status === '返却済み') {
+          badgeHtml = '<span class="status-badge badge-returned">返却済み</span>';
+        } else if (isOverdue) {
+          badgeHtml = '<span class="status-badge badge-overdue">延滞中</span>';
+        } else {
+          badgeHtml = '<span class="status-badge badge-borrowed">貸出中</span>';
+        }
+
+        const itemEl = document.createElement('div');
+        itemEl.className = `item-card ${isOverdue ? 'overdue' : ''}`;
+        itemEl.innerHTML = `
+          <div class="item-header">
+            <div class="item-title">${escapeHtml(item.itemName)}</div>
+            ${badgeHtml}
+          </div>
+          <div class="item-details">
+            <div><strong>借りた人:</strong> ${escapeHtml(item.borrowerName)}</div>
+            <div><strong>貸出日:</strong> ${item.borrowDate} / <strong>返却予定日:</strong> ${item.dueDate}</div>
+          </div>
+          <div class="item-actions">
+            <button class="${item.status === '未返却' ? 'btn-success' : 'btn-secondary'}" onclick="toggleStatus('${item.id}', '${item.status}')">
+              ${item.status === '未返却' ? '返却済みにする' : '未返却に戻す'}
+            </button>
+          </div>
+        `;
+        itemList.appendChild(itemEl);
+      });
+    }
+
+    // エスケープ処理（XSS対策）
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, function(m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        }[m];
+      });
+    }
+
+    // 検索・絞り込みイベント Listener
+    searchInput.addEventListener('input', renderItems);
+    filterStatus.addEventListener('change', renderItems);
+  </script>
+</body>
+</html>
